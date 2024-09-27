@@ -1,16 +1,15 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// App.jsx
+import React from 'react';
+import AverageTemperatureChart from './weather';
 
-function App() {
-  const [count, setCount] = useState(0)
 
+const App = () => {
   return (
-    <>
-      <h1>My first Vite App</h1>
-    </>
-  )
-}
+    <div>
+      <h1>Temperature Data Visualization</h1>
+      <AverageTemperatureChart />
+    </div>
+  );
+};
 
-export default App
+export default App;
