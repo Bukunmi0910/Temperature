@@ -1,4 +1,3 @@
-// AverageTemperatureChart.jsx
 import React, { useRef, useEffect, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
 
@@ -6,8 +5,7 @@ Chart.register(...registerables);
 
 const AverageTemperatureChart = () => {
   const canvasRef = useRef(null);
-  const [temperatureData, setTemperatureData] = useState([]);
-  const [location, setLocation] = useState(''); // State to hold the input location
+  const [temperatureData, setTemperatureData] = useState({ dates: [], temperatures: [] });
   const [searchLocation, setSearchLocation] = useState('Toronto'); // Default search location
   const [error, setError] = useState(null);
 
@@ -47,21 +45,23 @@ const AverageTemperatureChart = () => {
     const endDate = '2024-10-05';
     try {
       const response = await fetch(
-        `https://meteostat.p.rapidapi.com/point/daily?lat=43.6667&lon=-79.4&alt=184&start=2024-09-28&end=2024-10-05`,
+        `https://meteostat.p.rapidapi.com/point/daily?lat=${lat}&lon=${lon}&start=${startDate}&end=${endDate}`,
         {
           headers: {
             'x-rapidapi-host': 'meteostat.p.rapidapi.com',
-            'x-rapidapi-key':'4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3',
+            'x-rapidapi-key': meteostatKey,
           },
         }
       );
 
-      if (!response.ok) throw new Error('Failed to fetch weather data.');
+      if (!response.ok) {
+        const errorMessage = await response.text(); // Get error message from response
+        console.error('Response error:', errorMessage);
+        throw new Error('Failed to fetch weather data.');
+      }
 
       const data = await response.json();
-
       console.log("Meteostat response data:", data); // Log Meteostat response data
-
       return data.data || [];
     } catch (error) {
       console.error('Error fetching temperature data:', error);
@@ -84,7 +84,6 @@ const AverageTemperatureChart = () => {
           const temperatures = weatherData.map(entry => entry.tavg);
 
           setTemperatureData({ dates, temperatures });
-          setLocation(searchLocation); // Update the location
         } else {
           console.warn('No temperature data available for this location.');
           setError('No temperature data available for this location.');
@@ -100,7 +99,7 @@ const AverageTemperatureChart = () => {
 
   // Update the chart when temperature data changes
   useEffect(() => {
-    if (temperatureData.dates && temperatureData.temperatures) {
+    if (temperatureData.dates.length > 0 && temperatureData.temperatures.length > 0) {
       const ctx = canvasRef.current.getContext('2d');
       const myChart = new Chart(ctx, {
         type: 'line',
@@ -124,7 +123,7 @@ const AverageTemperatureChart = () => {
             },
             title: {
               display: true,
-              text: `Average Temperature for ${location} (Daily)`,
+              text: `Average Temperature for ${searchLocation} (Daily)`,
               font: {
                 size: 16,
               },
@@ -153,7 +152,7 @@ const AverageTemperatureChart = () => {
         myChart.destroy();
       };
     }
-  }, [temperatureData, location]);
+  }, [temperatureData]);
 
   return (
     <div>
