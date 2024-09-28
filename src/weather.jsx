@@ -7,58 +7,98 @@ Chart.register(...registerables);
 const AverageTemperatureChart = () => {
   const canvasRef = useRef(null);
   const [temperatureData, setTemperatureData] = useState([]);
+  const [location, setLocation] = useState(''); // State to hold the input location
+  const [searchLocation, setSearchLocation] = useState('Toronto'); // Default search location
+  const [error, setError] = useState(null);
 
   // Replace with your GeoApify and Meteostat API keys
   const geoApifyKey = '2654a31ce55847b3b889fd888aab4be9';
   const meteostatKey = '4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3';
 
+  // Fetch coordinates from GeoApify API
   const fetchCoordinates = async (location) => {
-    const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${Dallas}&apiKey=${'2654a31ce55847b3b889fd888aab4be9'}`
-    );
-    const data = await response.json();
-    return data.features[0]?.properties;
+    try {
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/search?text=${location}&apiKey=${geoApifyKey}`
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch coordinates.');
+
+      const data = await response.json();
+
+      console.log("GeoApify response data:", data); // Log GeoApify response data
+
+      if (data.features.length === 0) {
+        console.warn('No coordinates found for the specified location.');
+        return null;
+      }
+
+      return data.features[0]?.properties;
+    } catch (error) {
+      console.error('Error fetching coordinates:', error);
+      setError('Could not fetch location coordinates.');
+      return null;
+    }
   };
 
+  // Fetch temperature data from Meteostat API
   const fetchTemperatureData = async (lat, lon) => {
     const startDate = '2024-09-28';
     const endDate = '2024-10-05';
-    const response = await fetch(
-      `https://meteostat.p.rapidapi.com/point/daily?lat=${lat}&lon=${lon}&start=${startDate}&end=${endDate}`,
-      {
-        headers: {
-          'x-rapidapi-host': 'meteostat.p.rapidapi.com',
-          'x-rapidapi-key': meteostatKey,
-        },
-      }
-    );
-    const data = await response.json();
-    return data.data;
+    try {
+      const response = await fetch(
+        `https://meteostat.p.rapidapi.com/point/daily?lat=43.6667&lon=-79.4&alt=184&start=2024-09-28&end=2024-10-05`,
+        {
+          headers: {
+            'x-rapidapi-host': 'meteostat.p.rapidapi.com',
+            'x-rapidapi-key':'4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3',
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch weather data.');
+
+      const data = await response.json();
+
+      console.log("Meteostat response data:", data); // Log Meteostat response data
+
+      return data.data || [];
+    } catch (error) {
+      console.error('Error fetching temperature data:', error);
+      setError('Could not fetch temperature data.');
+      return [];
+    }
   };
 
-  useEffect(() => {
-    const getTemperatureData = async () => {
-      try {
-        // Replace 'Toronto' with the location of interest
-        const location = 'Toronto';
-        const coordinates = await fetchCoordinates(location);
+  // Handle search button click
+  const handleSearch = async () => {
+    setError(null); // Clear previous errors
+    try {
+      const coordinates = await fetchCoordinates(searchLocation);
 
-        if (coordinates) {
-          const weatherData = await fetchTemperatureData(coordinates.lat, coordinates.lon);
+      if (coordinates) {
+        const weatherData = await fetchTemperatureData(coordinates.lat, coordinates.lon);
 
+        if (weatherData && weatherData.length > 0) {
           const dates = weatherData.map(entry => entry.date);
           const temperatures = weatherData.map(entry => entry.tavg);
 
           setTemperatureData({ dates, temperatures });
+          setLocation(searchLocation); // Update the location
+        } else {
+          console.warn('No temperature data available for this location.');
+          setError('No temperature data available for this location.');
         }
-      } catch (error) {
-        console.error('Error fetching temperature data:', error);
+      } else {
+        setError('Could not find coordinates for this location.');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('An error occurred while fetching data.');
+    }
+  };
 
-    getTemperatureData();
-  }, []);
-
+  // Update the chart when temperature data changes
   useEffect(() => {
     if (temperatureData.dates && temperatureData.temperatures) {
       const ctx = canvasRef.current.getContext('2d');
@@ -84,7 +124,7 @@ const AverageTemperatureChart = () => {
             },
             title: {
               display: true,
-              text: 'Average Temperature by Day',
+              text: `Average Temperature for ${location} (Daily)`,
               font: {
                 size: 16,
               },
@@ -113,9 +153,21 @@ const AverageTemperatureChart = () => {
         myChart.destroy();
       };
     }
-  }, [temperatureData]);
+  }, [temperatureData, location]);
 
-  return <canvas ref={canvasRef} />;
+  return (
+    <div>
+      <input 
+        type="text"
+        placeholder="Enter a location"
+        value={searchLocation}
+        onChange={(e) => setSearchLocation(e.target.value)}
+      />
+      <button onClick={handleSearch}>Search</button>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <canvas ref={canvasRef} />
+    </div>
+  );
 };
 
 export default AverageTemperatureChart;
