@@ -4,6 +4,7 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const AverageTemperatureChart = () => {
+  // References and state variables
   const canvasRef = useRef(null);
   const [temperatureData, setTemperatureData] = useState({ dates: [], temperatures: [] });
   const [searchLocation, setSearchLocation] = useState('Toronto'); // Default search location
@@ -13,7 +14,7 @@ const AverageTemperatureChart = () => {
   const geoApifyKey = 'fb30858ae8334d578980544a39c4f016';
   const meteostatKey = '4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3';
 
-  // Fetch coordinates from GeoApify API
+  // Function to fetch coordinates from GeoApify API
   const fetchCoordinates = async (location) => {
     try {
       const response = await fetch(
@@ -23,7 +24,6 @@ const AverageTemperatureChart = () => {
       if (!response.ok) throw new Error('Failed to fetch coordinates.');
 
       const data = await response.json();
-
       console.log("GeoApify response data:", data); // Log GeoApify response data
 
       if (data.features.length === 0) {
@@ -39,7 +39,7 @@ const AverageTemperatureChart = () => {
     }
   };
 
-  // Fetch temperature data from Meteostat API
+  // Function to fetch temperature data from Meteostat API
   const fetchTemperatureData = async (lat, lon) => {
     // Get the start and end dates for the past seven days
     const today = new Date();
@@ -53,8 +53,8 @@ const AverageTemperatureChart = () => {
         `https://meteostat.p.rapidapi.com/point/daily?lat=${lat}&lon=${lon}&start=${startDateStr}&end=${endDateStr}`,
         {
           headers: {
-            'x-rapidapi-host: meteostat.p.rapidapi.com',
-	            'x-rapidapi-key: 4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3',
+            'x-rapidapi-host': 'meteostat.p.rapidapi.com',
+            'x-rapidapi-key': '4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3',
           },
         }
       );
@@ -75,7 +75,7 @@ const AverageTemperatureChart = () => {
     }
   };
 
-  // Handle search button click
+  // Function to handle search button click
   const handleSearch = async () => {
     setError(null); // Clear previous errors
     try {
@@ -102,7 +102,7 @@ const AverageTemperatureChart = () => {
     }
   };
 
-  // Update the chart when temperature data changes
+  // Effect hook to update the chart when temperature data changes
   useEffect(() => {
     if (temperatureData.dates.length > 0 && temperatureData.temperatures.length > 0) {
       const ctx = canvasRef.current.getContext('2d');
@@ -118,7 +118,7 @@ const AverageTemperatureChart = () => {
             backgroundColor: '#42A5F5',
             tension: 0.1,
             borderWidth: 2,
-          }]
+          }],
         },
         options: {
           responsive: true,
@@ -147,8 +147,8 @@ const AverageTemperatureChart = () => {
                 text: 'Temperature (°C)',
               },
               beginAtZero: true,
-            }
-          }
+            },
+          },
         },
       });
 
@@ -159,9 +159,10 @@ const AverageTemperatureChart = () => {
     }
   }, [temperatureData]);
 
+  // Render the component UI
   return (
     <div>
-      <input 
+      <input
         type="text"
         placeholder="Enter a location"
         value={searchLocation}
