@@ -9,8 +9,8 @@ const AverageTemperatureChart = () => {
   const [searchLocation, setSearchLocation] = useState('Toronto'); // Default search location
   const [error, setError] = useState(null);
 
-  // Replace with your GeoApify and Meteostat API keys
-  const geoApifyKey = '2654a31ce55847b3b889fd888aab4be9';
+  // Replace with your actual GeoApify and Meteostat API keys
+  const geoApifyKey = 'fb30858ae8334d578980544a39c4f016';
   const meteostatKey = '4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3';
 
   // Fetch coordinates from GeoApify API
@@ -41,15 +41,20 @@ const AverageTemperatureChart = () => {
 
   // Fetch temperature data from Meteostat API
   const fetchTemperatureData = async (lat, lon) => {
-    const startDate = '2024-09-28';
-    const endDate = '2024-10-05';
+    // Get the start and end dates for the past seven days
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 7);
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = today.toISOString().split('T')[0];
+
     try {
       const response = await fetch(
-        `https://meteostat.p.rapidapi.com/point/daily?lat=${lat}&lon=${lon}&start=${startDate}&end=${endDate}`,
+        `https://meteostat.p.rapidapi.com/point/daily?lat=${lat}&lon=${lon}&start=${startDateStr}&end=${endDateStr}`,
         {
           headers: {
-            'x-rapidapi-host': 'meteostat.p.rapidapi.com',
-            'x-rapidapi-key': meteostatKey,
+            'x-rapidapi-host: meteostat.p.rapidapi.com',
+	            'x-rapidapi-key: 4823cc02b3mshad80bba1798167ap14ab6djsne39a06e277a3',
           },
         }
       );
