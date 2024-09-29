@@ -7,7 +7,7 @@ const AverageTemperatureChart = () => {
   // References and state variables
   const canvasRef = useRef(null);
   const [temperatureData, setTemperatureData] = useState({ dates: [], temperatures: [] });
-  const [searchLocation, setSearchLocation] = useState('Toronto'); // Default search location
+  const [searchLocation, setSearchLocation] = useState(); // Default search location
   const [error, setError] = useState(null);
 
   // Replace with your actual GeoApify and Meteostat API keys
