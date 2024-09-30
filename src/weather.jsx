@@ -118,7 +118,7 @@ const AverageTemperatureChart = () => {
             backgroundColor: '#42A5F5',
             tension: 0.1,
             borderWidth: 2,
-          }],
+          }]
         },
         options: {
           responsive: true,
@@ -140,6 +140,13 @@ const AverageTemperatureChart = () => {
                 display: true,
                 text: 'Date',
               },
+              ticks: {
+                maxRotation: 60, // Rotate the labels to a slant
+                minRotation: 60, // Ensure the labels stay slanted
+                font: {
+                  style: 'italic', // Make the font style italic
+                },
+              },
             },
             y: {
               title: {
@@ -147,28 +154,36 @@ const AverageTemperatureChart = () => {
                 text: 'Temperature (°C)',
               },
               beginAtZero: true,
-            },
-          },
+            }
+          }
         },
       });
-
+  
       // Cleanup chart instance on component unmount
       return () => {
         myChart.destroy();
       };
     }
   }, [temperatureData]);
-
+  
   // Render the component UI
   return (
     <div>
-      <input
-        type="text"
-        placeholder="Enter a location"
-        value={searchLocation}
-        onChange={(e) => setSearchLocation(e.target.value)}
-      />
-      <button onClick={handleSearch}>Search</button>
+      <input 
+  type="text"
+  placeholder="Enter a location"
+  value={searchLocation}
+  onChange={(e) => setSearchLocation(e.target.value)}
+  style={{
+    borderColor: 'darkblue',
+    borderWidth: '1px',
+    padding: '5px',
+    marginRight: '10px', 
+    borderRadius: '5px'
+  }}
+/>
+<button onClick={handleSearch}>Search</button>
+
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <canvas ref={canvasRef} />
     </div>
